@@ -3,14 +3,18 @@
         "http://java.sun.com/dtd/web-app_2_3.dtd" >
 <web-app>
 
-    <servlet>
-        <servlet-name>carServlet</servlet-name>
-        <servlet-class>app.controller.CarServlet</servlet-class>
-    </servlet>
+
+
+       <servlet>
+           <servlet-name>carServlet</servlet-name>
+           <servlet-class>app.controller.CarServlet</servlet-class>
+       </servlet>
     <servlet-mapping>
         <servlet-name>carServlet</servlet-name>
         <url-pattern>/cars</url-pattern>
     </servlet-mapping>
+
+
 
 
 </web-app>

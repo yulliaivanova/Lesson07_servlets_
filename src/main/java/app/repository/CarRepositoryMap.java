@@ -43,12 +43,19 @@ public class CarRepositoryMap implements CarRepository {
 
     @Override
     public Car update(Car car) {
-        return null;
+
+        if (car.getId() == null || !database.containsKey(car.getId())) {
+            return null;
+        }
+        database.put(car.getId(), car);
+        return car;
+
+
     }
 
     @Override
     public boolean deleteById(Long id) {
-        return database.remove(id) !=null;
+        return database.remove(id) != null;
     }
 
 

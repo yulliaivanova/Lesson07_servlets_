@@ -2,9 +2,9 @@ package app.controller;
 
 import app.model.Car;
 import app.repository.CarRepository;
-import app.repository.CarRepositoryDB;
+//import app.repository.CarRepositoryDB;
 import app.repository.CarRepositoryMap;
-import com.fasterxml.jackson.databind.ObjectMapper;
+  import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class CarServlet extends HttpServlet {
 
-    private CarRepository repository = new CarRepositoryDB();
+    private CarRepository repository = new CarRepositoryMap();
     private ObjectMapper mapper = new ObjectMapper();
 
     // GET http://10.2.3.4:8080/cars
@@ -37,9 +37,9 @@ public class CarServlet extends HttpServlet {
 
         if (params.isEmpty()) {
             List<Car> cars = repository.getAll();
-
+//
             response.setContentType("application/json"); // Устанавливаем тип контента JSON
-            // Преобразовать список машин в JSON
+//            // Преобразовать список машин в JSON
             String json = mapper.writeValueAsString(cars);
             response.getWriter().write(json);
         } else {
@@ -68,34 +68,65 @@ public class CarServlet extends HttpServlet {
 //        });
     }
 
+
     //    POST -> /cars
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Для сохранения нового автомобиля в БД
+//        // Для сохранения нового автомобиля в БД
 
-//        преобразуем json из запроса в java обьект, используя jackson
-        Car car = mapper.readValue(request.getReader(), Car.class);
+////        преобразуем json из запроса в java обьект, используя jackson
+      Car car  = mapper.readValue(request.getReader(), Car.class);
         System.out.println("car from Post: " + car);
 
-//    сохоаняем в базу данных
+////    сохоаняем в базу данных
         car = repository.save(car);
 
         String json = mapper.writeValueAsString(car);
-
+//
         response.getWriter().write(json);
 
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Для изменения существующего автомобиля в БД
-        super.doPut(req, resp);
+
+        // Чтение JSON из request и преобразование в объект Car
+        Car car = mapper.readValue(request.getReader(), Car.class);
+
+        // Обновление автомобиля в базе данных
+        Car updatedCar = repository.update(car);
+        if (updatedCar == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            response.getWriter().write("Car not found for update!");
+        } else {
+            // Возвращает  обновленный объект в JSON-формате
+            response.setContentType("application/json");
+            response.getWriter().write(mapper.writeValueAsString(updatedCar));
+        }
+
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Для удаление автомобиля из БД по id
         // DELETE /cars?id=3
-        super.doDelete(req, resp);
+        String idStr = request.getParameter("id");
+        if (idStr == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("ID is required for deletion!");
+            return;
+        }
+
+        Long id = Long.parseLong(idStr);
+        boolean deleted = repository.deleteById(id);
+        if (deleted) {
+            // Если успешно удалено:отправляем сообщение
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } else {
+            // Если объект не найден, возвращаем статус 404
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            response.getWriter().write("Car not found for deletion!");
+        }
     }
 }
